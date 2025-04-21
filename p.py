@@ -6,13 +6,27 @@ import subprocess
 
 try:
     from moviepy.editor import VideoClip
-    from moviepy.video.io.bindings import mplfig_to_npimage
-    print("MoviePy successfully imported!")
+    print("Successfully imported VideoClip from moviepy.editor!")
+    
+    # Custom mplfig_to_npimage function to handle newer matplotlib versions
+    def mplfig_to_npimage(fig):
+        """Convert a Matplotlib figure to a RGB frame."""
+        # Draw the figure first to ensure it's rendered
+        fig.canvas.draw()
+        
+        # Get the RGBA buffer from the figure
+        w, h = fig.canvas.get_width_height()
+        buf = np.frombuffer(fig.canvas.buffer_rgba(), np.uint8).reshape((h, w, 4))
+        
+        # Convert RGBA to RGB
+        return buf[:,:,:3]
+        
+    print("Created custom mplfig_to_npimage function for matplotlib compatibility!")
 except ImportError as e:
     print(f"Specific import error: {e}")
-    print("Error: MoviePy import failed. Please install it using:")
-    print("pip install moviepy")
+    print("Error: MoviePy import failed. Please check the MoviePy installation.")
     sys.exit(1)
+
 # Function to check FFmpeg availability
 def check_ffmpeg():
     """
@@ -120,6 +134,8 @@ def create_sine_wave_animation(output_filename="sine_wave_animation.mp4", durati
     except Exception as e:
         # Catch any other unexpected errors
         print(f"An unexpected error occurred: {e}")
+        import traceback
+        traceback.print_exc()  # Print the full traceback for better debugging
         return False
 
 # Main execution block with error handling
